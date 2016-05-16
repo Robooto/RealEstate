@@ -1,0 +1,61 @@
+﻿@using RealEstate.Rentals
+@model RealEstate.Rentals.RentalsList
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Rental Listings</h2>
+
+@using (Html.BeginForm())
+{
+    <label for="PriceLimit">Price Limit</label>
+    <input type="text" name="PriceLimit" value="@Model.Filters.PriceLimit"/>
+    <label for="MinimumRooms">Minimum Rooms</label>
+    <input type="text" name="MinimumRooms" value="@Model.Filters.MinimumRooms" />
+    <input type="submit" value="Search"/>
+}
+
+<p>
+    @Html.ActionLink("Post Rental", "Post")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            Description
+        </th>
+        <th>
+            Number of Rooms
+        </th>
+        <th>
+            Price
+        </th>
+        <th>
+            Last Adjustment
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model.Rentals) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Description)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.NumberOfRooms)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Price)
+        </td>
+        <td>
+            @item.Adjustments.Select(a => a.Describe()).LastOrDefault()
+        </td>
+        <td>
+            @Html.ActionLink("Adjust Price", "AdjustPrice", new { id= item.Id})
+            @Html.ActionLink("Delete", "Delete", new {id = item.Id})
+            @Html.ActionLink("Image", "AttachImage", new { id = item.Id })
+        </td>
+    </tr>
+}
+
+</table>

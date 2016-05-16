@@ -1,0 +1,89 @@
+﻿You can add properties to a solution which add to the webconfig and are accessed through the property class.
+
+'Use Official driver sucka'
+
+Newer version of the mongo driver you don't need to getserver then get db you can just get db.
+
+Best practice is to create a 'context' class for consolidating connection code for mongodb.
+
+Driver handles all connections so don't use using statements.
+
+Modeling tips - 
+
+Use nested objects
+Use nested collections
+Avoid replicating SQL - Flat data
+Consider data access
+consider data modifications
+consider constraints
+
+Use bson attributes when doing saving models
+BsonIgnoreIfNull
+
+
+DateTimes
+Date times are saved as UTC so when using local times need to use decorator
+BsonDateTimeOptions(Kind = DateTimeKind.local)
+
+If you need only date
+BsonDateTimeOptions(DateOnly = true)
+
+Can make our own BsonId by using [BsonId] attribute
+
+BsonignoreExtraElements - ignores extra elements that could be stored in a mongo collection that get serialized into a class
+
+
+Querying mongodb - FindAll Context.Rentals.Find(FilterDefinition<Rental>.Empty).ToList();
+
+Find one by ID -             var query = Builders<Rental>.Filter.Eq("_id", ObjectId.Parse(id));
+            var rental = Context.Rentals.Find(query).FirstOrDefault();
+
+Enums as strings is a thing you can make
+
+
+v2 things
+
+Instances of mongo are thread safe
+
+Find all = FilterDefinition<Rental>.Empty or new BsonDocument()
+
+ForEachAsync can itorate through a list and run an operation on them
+
+Sort by is an extention method that makes sorting very simple
+
+Then by after sort to do multiple sorting operations
+
+Projections - projections can be used to map objects you get back to view models (sub sets of objects)
+
+            var rentals = await Context.Rentals
+                .Find(filterDefinition)
+				.Project(r => new RentalViewModel
+				{
+					Id = r.Id,
+					Address = r.Address,
+					Description = r.Description,
+					NumberOfRooms = r.NumberOfRooms,
+					Price = r.Price
+				})
+                .SortBy(r => r.Price)
+                .ThenBy(r => r.NumberOfRooms)
+                .ToListAsync();
+
+Profiling
+
+Enable profiling by typeing into the shell db.setProfilingLevel(2);
+
+db.system.profile.find() to find profiling documents
+
+looking at query doc vs linq syntax
+{ "find" : "rentals", "filter" : { "Price" : { "$lte" : 900.0 } }, "sort" : { "Price" : 1, "NumberOfRooms" : -1 } }
+
+using linq
+{ "aggregate" : "rentals", "pipeline" : [{ "$match" : { "Price" : { "$lte" : 900.0 } } }, { "$sort" : { "Price" : 1, "NumberOfRooms" : -1 } }]
+
+
+aggregate using fluent queries
+{ "aggregate" : "rentals", "pipeline" : [{ "$project" : { "Price" : "$Price", "PriceRange" : { "$subtract" : ["$Price", { "$mod" : ["$Price", 500.0] }] }, "_id" : 0 } }, { "$group" : { "_id" : "$PriceRange", "Count" : { "$sum" : 1 } } }, { "$sort" : { "_id" : 1 } }]
+
+aggregate using linq
+{ "aggregate" : "rentals", "pipeline" : [{ "$project" : { "Price" : "$Price", "PriceRange" : { "$subtract" : ["$Price", { "$mod" : ["$Price", 500.0] }] }, "_id" : 0 } }, { "$group" : { "_id" : "$PriceRange", "__agg0" : { "$sum" : 1 } } }, { "$project" : { "GroupPriceRange" : "$_id", "Count" : "$__agg0", "_id" : 0 } }, { "$sort" : { "GroupPriceRange" : 1 } }]

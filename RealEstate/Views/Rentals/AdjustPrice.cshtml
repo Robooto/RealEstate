@@ -1,0 +1,62 @@
+﻿@model RealEstate.Rentals.Rental
+
+@{
+    ViewBag.Title = "AdjustPrice";
+}
+
+<h2>AdjustPrice</h2>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        <h4>Rental</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Model.Description
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Price, htmlAttributes: new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Model.Price
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("AdjustPrice", "Adjust Price", new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBox("NewPrice")
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Reason", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextArea("Reason")
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Adjust" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
